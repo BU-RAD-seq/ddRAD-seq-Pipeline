@@ -15,4 +15,4 @@ and distributed WITHOUT warranty; without even the implied warranty of MERCHANTA
 FOR A PARTICULAR PURPOSE.
 
 
-See Instructions.txt for details on pipeline steps and scripts.
+See MANUAL.txt for details on pipeline steps and scripts.

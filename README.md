@@ -2,6 +2,7 @@ ddRAD-seq-Pipeline
 ==================
 
 Created by Michael Sorenson and Jeffrey DaCosta
+
 Copyright (c) 2011-2013 Boston University. All rights reserved.
 
 This pipeline was created to process “double-digest” restriction-site associated DNA sequences

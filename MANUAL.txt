@@ -1,0 +1,182 @@
+ddRAD-seq-Pipeline
+
+Created by Michael Sorenson and Jeffrey DaCosta
+Copyright (c) 2011-2013 Boston University. All rights reserved.
+
+This pipeline was created to process “double-digest” restriction-site associated DNA sequences
+(ddRAD-seq) as described in DaCosta and Sorenson (PLoS One, submitted). The scripts are written for
+execution in the python (version 3) language, and in some cases are dependent on other programs or
+specification files. Some scripts run jobs in parallel using the multiprocessing module and the ssh
+command to access nodes on a computer cluster. These scripts were optimized to run on our Diskless
+Remote Boot Linux (DRBL) cluster and may need editing to run on other clusters. The software is free
+and distributed WITHOUT warranty; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.
+
+Pipeline steps:
+1. Convert fastq data files to the qseq format -- fastq2qseq.py
+2. Parse reads to individual sample files -- ddRADparser.py
+3. Condense identical sequences within each sample -- CondenseSequences.py
+4. Filter divergent and low quality sequences within each sample -- FilterSequences.py
+5. Concatenate condensed and filtered (CF) sequences for samples of interest -- cat
+6. Cluster CF reads -- uCLust85toBLAST.py
+7. BLAST a representative sequence from each cluster to a reference genome -- runBLAST.py
+8. Combine clusters with highly similar BLAST hits -- CombineClusters.py
+9. Align sequences within each cluster -- AlignClustersP.py
+10. Determine genotypes for each individual for each cluster -- RADGenotypes.py
+
+
+***STEP 1***
+We highly recommend that raw sequences are scrutinized before being used in analyses. Per
+base read quality can be explored using the program fastQC. Also, we routinely analyze the first 12
+base pairs (barcode+restriction site) of read1 sequences for all sequencing runs for unexpected
+barcode sequences and the presence of Ns, which can inform if barcode correction (see below) would
+be useful. We also analyze index sequences in the "unassigned" data file to determine if some of
+these reads can be unambiguously assigned to a barcode.
+
+After initial quality control the fastq files for each index can be converted to the qseq format
+with the script fastq2qseq.py.
+
+Command:
+python3 fastq2qseq.py infile.fastq
+
+File created:
+infile.qseq
+
+
+***STEPS 2-4***
+
+These steps can be run in parallel with the script ParallelParser.py. This script is a task master
+that breaks the input file into smaller pieces and then launches multiple ddRADparser runs on the
+individual files. Once those runs are completed, it pulls all the data back together again and then
+launches individual CondenseSequences and FilterSequences runs on the individual sample files.
+Again, at the end, it collects some information from the sumtemp files and incorporates that into a
+summary output file. ParallelParser.py requires a specifications (specs) file that provides
+information on file locations, sample barcodes, restriction enzymes, adapter sequences, etc. (see
+example.specs).
+
+Alternatively, ddRADparser.py can be run for a set of reads and CondenseSequences.py and
+FilterSequences.py can be run sequentially for each sample.
+
+Command:
+python3 ParallelParser.py specs_file
+
+Dependencies:
+specs_file -- specification details (see example.specs)
+index_file -- list of barcodes and sample names (see example.index)
+
+Files created:
+Output files related to read parsing include:
+	1. *summary.out -- summary statistics for read parsing
+	2. TinySeqs.qseq
+	3. ConcatamerSeqs.qseq
+	4. UnassignedSeqs.qseq
+	5. Unassigned_start_seqs.out
+For each sample four qseq files will be created:
+	1. sample.qseq -- all reads assigned to sample
+	2. sampleC.qseq -- identical reads collapsed
+	3. sampleCX.qseq -- condensed reads removed after filtering
+	4. sampleCF.qseq -- condensed reads retained after filtering
+
+
+***STEP 5***
+
+For the set of N samples of interest, combine the CF files with the cat command in terminal. Choose
+a "basename" that will be used for files created in downstream steps.
+
+Command:
+cat sample1CF.qseq sample2CF.qseq ... sampleNCF.qseq > basename.qseq
+
+Files created:
+basename.qseq
+
+
+***STEP 6***
+
+CF reads of interest are then clustered into "clusters" (loci) based on percent similarity using the
+UCLUST command in the program USEARCH. The default threshold for clustering is 0.85, but this can be
+changed by editing the script. For clusters that reach the min_depth size, a representative sequence
+is extracted and written to a fasta file for a BLAST search.
+
+Command:
+python3 uCLust85toBLAST.py basename.qseq min_depth
+
+Dependencies:
+usearch (version 5 in $PATH as "usearch")
+
+Files created:
+basename.uc85 -- uclust results
+clusterdepth
+basenameBLAST.fasta
+
+
+***STEP 7***
+
+Representative sequences from each cluster are BLASTed to a reference genome with the blastn
+program. To decrease run time, the script breaks up the input file into smaller batches of reads,
+which are then run in blastn sequentially. Clusters that do not produce a BLAST hit are carried
+through the remainder of the pipeline as anonymous loci.
+
+Command:
+python3 runBLAST.py path_to_blast_database
+
+Dependencies:
+blastn (version 2 in $PATH as "blastn")
+BLAST database (created using a reference genome and makeblastdb command in blast program)
+
+Files created:
+basenameBLAST.results -- raw blastn results
+basenameBLASTsummary.out -- summary table of BLAST results
+
+
+***STEP 8***
+
+Separate clusters that produce highly similar BLAST hits (due to divergent alleles or errors during
+heuristic clustering) are combined into a single cluster using CombineClusters.py.
+
+Command:
+python3 CombineClusters.py basename.qseq
+
+Files created:
+basenameCOMB.qseq
+
+
+***STEP 9***
+
+Each cluster is aligned using the program MUSCLE. This is done in parallel using the script
+AlignClustersP.py. This script first collapses identical reads within each cluster to improve muscle
+performance. If the number of collapsed reads in a cluster is >5999 (likely representing paralogous
+loci) then the cluster is not aligned
+
+Command:
+python3 AlignClustersP.py basename.qseq min_depth node_list
+
+Dependencies:
+muscle (version 3 in $PATH as "muscle")
+node_list -- text file with the names of nodes to use in analysis, 1 node per line
+
+Files created:
+BigClusters
+basenameAS.qseq -- aligned reads for each cluster, sorted by cluster number
+
+
+***STEP 10***
+
+Sample genotypes are determined for each cluster with the script RADGenotypes.py. This script uses
+several thresholds to differentiate heterozygotes from homozygotes. See DaCosta and Sorenson (PLoS
+ONE, submitted) for details. The command requires the full sequence of the enzyme used to generate
+the overhang for the P1 adapter.
+
+Command:
+python3 RADGenotypes.py basename.qseq min_depth enz1_seq
+
+Dependencies:
+basename.index -- index file for sample in dataset, sample order retained in output file
+
+Files created:
+basename.out -- genotype results
+basenameclustersummary.out -- summary table of genotypes for each cluster
+
+
+Reference:
+DaCosta JM & Sorenson MD. Submitted. Amplification biases and consistent recovery of loci in a
+double-digest RAD-seq protocol. PLoS ONE.

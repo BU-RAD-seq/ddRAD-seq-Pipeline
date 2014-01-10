@@ -5,7 +5,7 @@ Input_file1:	RAD018A	{enter base file name for read 1: e.g., for RAD005R1.qseq, 
 Input_file2:		{enter base file name for read 2 or leave blank for single read}
 Samples_file:	RAD18a.index	{enter name of tab-delimited file with barcode_name, barcode_sequence, and individual SampleIDs}
 Barcode_correction:	False	{enter True to turn on barcode correction}
-Recode_quality_scores:	False	{enter True to change quality scores from Illumina version 1.3/1.5 (Phred+64) to version 1.8 (Phred+33)}
+Recode_quality_scores:	False	{enter True if your data are Illumina version 1.3/1.5 (Phred+64), "True" converts scores to version 1.8 (Phred+33)}
 Restriction_site#1:	TGCAGG	{include only portion expected in RAD tag sequence}
 Restriction_site#1:	CCTGCAGG	{full sequence of restriction site}
 Restriction_site#2:	GAATT	{include only portion expected in RAD tag sequence}

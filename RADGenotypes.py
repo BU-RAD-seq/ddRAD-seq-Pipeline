@@ -1287,3 +1287,4 @@ outf.close()
 print(hom_test1,hom_test2,hom_test3,het_test1,het_test2,fail_test1,fail_test2,fail_test3,fail_test4,fail_test5,no_data,low_qual_single,global_single)
 sumfile.close()
 
+print('\nFinished!!\n\n')

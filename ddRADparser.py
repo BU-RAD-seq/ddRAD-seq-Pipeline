@@ -2,7 +2,7 @@
 ##
 ## ddRADparser.py
 ##
-## Version 1.04 -- 14 September 2013
+## Version 1.05 -- 20 November 2013
 ##
 ## Created by Michael Sorenson
 ## Copyright (c) 2011-2013 Boston University. All rights reserved.
@@ -69,14 +69,14 @@ def find_P2(inseq,matchseq,len_rsite):
         code=1
     else:
         locations = []
-        i = inseq.find(matchseq[0:len_rsite])
+        i = inseq.find(matchseq[0:5])
         while i != -1:
             locations.append(i)
-            i = inseq.find(matchseq[0:len_rsite],i+1)
-        i = inseq.find(matchseq[len_rsite:len_rsite+5])
+            i = inseq.find(matchseq[0:5],i+1)
+        i = inseq.find(matchseq[5:10])
         while i != -1:
-            locations.append(i-len_rsite)
-            i = inseq.find(matchseq[len_rsite:len_rsite+5],i+1)
+            locations.append(i-5)
+            i = inseq.find(matchseq[5:10],i+1)
         locations = list(set(locations))
 
         for i in locations:            
@@ -88,14 +88,14 @@ def find_P2(inseq,matchseq,len_rsite):
                     location = i
                     break
                 else:     
-                    if sum(c1 != c2 for c1,c2 in zip(test_seq,matchseq[:len(test_seq)]))/(len(test_seq)-5) < 0.3:
+                    if sum(c1 != c2 for c1,c2 in zip(test_seq,matchseq[:len(test_seq)]))/(len(test_seq)-len_rsite) < 0.3:
                         found=True
                         code=3
                         location = i
                         break
                     else:
                         AlignResult=Align(test_seq,matchseq[:len(test_seq)])
-                        if AlignResult[-1][-1]/(len(test_seq)-5) < 0.3:
+                        if AlignResult[-1][-1]/(len(test_seq)-len_rsite) < 0.3:
                             found=True
                             code=4
                             location = i
@@ -548,13 +548,13 @@ else:
                             
             # check for short tags
 
-            #check for r_site2 concatamer
-            position = data1[8].find(r_site2_complete)+r_site2_complete_length
-            if position > r_site2_complete_length:
-                concatamer2R1[sample_index] += 1
-                S2Locations1[position]+=1
-                data1[8]=data1[8][:position]
-                data1[9]=data1[9][:len(data1[8])]
+            #check for r_site2 concatemer ### for BfuCI -- removed this block of code as there is no opportunity to discriminate concatemer from short insert on this basis -- moved to later in code...
+#            position = data1[8].find(r_site2_complete)+r_site2_complete_length
+#            if position > r_site2_complete_length:
+#                concatamer2R1[sample_index] += 1
+#                S2Locations1[position]+=1
+#                data1[8]=data1[8][:position]
+#                data1[9]=data1[9][:len(data1[8])]
                 
             # check for r_site1 concatamer
             position = data1[8].find(r_site1_complete,r_site1_length)+r_site1_complete_length
@@ -572,6 +572,15 @@ else:
                     data1[8]=data1[8][:position]+r_site2_complete
                     data1[9]=data1[9][:len(data1[8])]
                     short_tags[sample_index][len(data1[8])] += 1
+                else:
+                    #check for r_site2 concatemer ### moved from earlier in code as of ddRADparser 1.05
+                    position = data1[8].find(r_site2_complete)+r_site2_complete_length
+                    if position > r_site2_complete_length:
+                        concatamer2R1[sample_index] += 1
+                        S2Locations1[position]+=1
+                        data1[8]=data1[8][:position]
+                        data1[9]=data1[9][:len(data1[8])]
+
                                                     
                 if len(data1[8]) > 31:
                     if adjust_quals == True:
@@ -627,3 +636,4 @@ else:
 print("P2_codes: ",P2_codes)
 print("Corrected barcodes (succeed/fail): ",successful_align1,"/",failed_align1)
 print("Nfix: ",Nfix,"Rsitefix: ",rsitefix1)
+print('\nFinished!!\n\n')

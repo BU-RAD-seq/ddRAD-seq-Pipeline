@@ -2,7 +2,7 @@
 ##
 ## AlignClustersP.py
 ##
-## Version 1.05 -- 8 July 2013
+## Version 1.06 -- 8 July 2013
 ##
 ## Created by Michael Sorenson
 ## Copyright (c) 2011-2013 Boston University. All rights reserved.
@@ -159,7 +159,7 @@ def run_muscle(clustno,d,s,host,seq_ids):
 input_file=open(base_filename.replace('.qseq','COMB.qseq'),'r')
 muscle_file = open('muscle0.fa','w')
 
-bigclusters = open('BigClusters','w')
+bigclusters = open(base_filename.replace('.qseq','.clusters'),'w')
 output_filename = base_filename.replace('.qseq','A.qseq')
 output_file = open(base_filename.replace('.qseq','A.qseq'),'w')
                     
@@ -344,7 +344,3 @@ p = subprocess.Popen(command, shell=True)
 sts = os.waitpid(p.pid, 0)[1]
 
 print('\nFinished!!\n')
-
-
- 
-

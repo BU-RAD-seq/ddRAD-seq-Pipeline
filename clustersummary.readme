@@ -1,0 +1,152 @@
+ClusterSummary File Description
+
+At the conclusion of the ddRAD-seq pipeline samples are genotyped with RADGenotypes.py and two output files are created:
+basename.out -- genotype results
+basenameclustersummary.out -- summary table of genotypes for each cluster
+
+This document describes the contents of the clustersummary file. After a header each row in the file represents a cluster (i.e., ddRAD locus). The contents of the columns are as follows.
+
+
+***Column1: Clstr***
+An arbitrary number assigned to each cluster (by uclust during pipeline analysis).
+
+
+***Column2: Hits***
+Category of BLAST results for the cluster against the reference genome.
+
+.: no hit
+one: one hit
+one+: one hit with good match, other far inferior matched found
+tied: top two hits equally matched
+best: multiple hits, but one reported is the best match
+multiple: multiple high-quality hits
+
+
+***Column3: Chr***
+Reference genome chromosome for best BLAST hit.
+
+
+***Column4: Pos***
+Reference genome position of BLAST hit for beginning of cluster sequence.
+
+
+***Column5: Dir***
+Reference genome direction for cluster sequence (1=forward, -1=reverse).
+
+
+***Column6: Length***
+Length (bp) of cluster alignment.
+
+
+***Column7: Poly***
+Number of polymorphisms (SNPs + gaps) in cluster.
+
+
+***Column8: SNPS***
+Number of SNPs in cluster.
+
+
+***Column9: Gaps***
+Number of gaps in cluster.
+
+
+***Column10: Haps***
+Number of haplotypes in cluster.
+
+
+***Column11: cSNPs***
+Maximum number of perfectly congruent SNPs. Larger numbers highlight three kinds of problems: 1) end of locus alignment issues not captured by pipeline's < 3 of 5 SNPs in last 5 bases rule; 2) divergent “alleles” likely representing some other low depth and/or inconsistently recovered locus; and 3) “complex indels” not properly aligned by MUSCLE.
+
+
+***Column12: cSNPsd***
+Score for the distribution of perfectly congruent SNPs. The larger the number, the tighter packed are the congruent SNPs, pointing to issues 1 or 3 above.
+
+
+***Column13: Edit***
+A code to describe possible edits to the MUSCLE cluster alignment performed during genotyping.
+
+0: no indels and/or no alignment issues detected
+1: possible misalignment at end of sequence (2 correlated sites in last 5, or 3+ sites in last 5)
+2: ragged end with too many adjacent var sites (2 correlated sites in adjacent 5, or 3+ sites)
+3: overlapping gaps at front end (this is rare)
+4: overlapping gaps for slide right (this is rare)
+5: possible slide right, but too many mismatches
+6: stray C, but not OK to trim due to overlapping gaps (this is rare)
+7: trimmed ragged right end
+8: leading gaps trimmed
+9: SbfI site moved to right and trimmed
+10: small gap in rsite
+11: stray C moved to left and trimmed
+12: 2 imperfectly correlated sites in last 5 or in adjacent 5 (for code 7)
+
+Codes 1-6 indicate possible problems and clusters with alignments that should be manually checked.
+
+Codes 7-12 indicate alignments that were automatically fixed during genotyping.
+
+Note that a cluster can have more than one code, and if so codes are separated by a period (e.g., 7.1 means codes 7 and 1).
+
+
+***Column14: Trim***
+Number of bases trimmed during automatic fixing of alignment (note: appears bugged and in need of fixing)
+
+
+***Column15: InfSites***
+Does cluster conform to the infinite sites model.
+
+
+***Column16: HW-X2***
+Chi-square value for Hardy-Weinberg test. Assumes all samples are from the same population, so interpret with caution.
+
+
+***Column17: Hets***
+Reports excess (+) or deficiency (-) of heterozygous genotypes. Assumes all samples are from the same population, so interpret with caution.
+
+
+***Column18: HetRatio***
+Ratio of depth for heterozygotes to  homozygotes. Should be ~1 for a large sample of both. If it’s >>1, indication that hets are actually samples with two (or more) loci clustered together.
+
+
+***Column19: Hets***
+Number of samples with heterozygous genotypes.
+
+
+***Columns20: NoData***
+Number of samples with no data (i.e., samples "missing" genotypes).
+
+
+***Columns21: Good***
+Number of samples with "good" (i.e., unambiguously assigned) genotypes.
+
+
+***Columns22: LowDepth***
+Number of samples with low depth (i.e., < 5 reads).
+
+
+***Columns23: BadRatio***
+Number of samples with a heterozygous genotype and a failing ratio of major to minor allele depth.
+
+
+***Columns24: ExtraReads***
+Number of samples with a heterozygous genotype and a failing number of reads not matching major or minor allele.
+
+
+***Columns25: 3rdAllele***
+Number of samples with a heterozygous genotype and a failing number of reads matching a "third allele" (i.e., different from major and minor allele).
+
+
+***Column26: Consensus***
+Consensus sequence for cluster.
+
+***Columns27 through 27+N***
+Read depth for samples. The order of the samples is the same as in the index file used during genotyping.
+
+
+***Remaining columns***
+Genotype code for samples. The order of the samples is the same as in the index file used during genotyping.
+
+0: NoData
+1: Good
+2: LowDepth
+3: BadRatio
+4: ExtraReads
+5: 3rdAllele

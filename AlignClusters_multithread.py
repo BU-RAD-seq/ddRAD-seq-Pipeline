@@ -36,9 +36,10 @@ parser = argparse.ArgumentParser(description=
                                  'It is free and distributed WITHOUT warranty; without even the implied warranty\n'+
                                  'of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.', formatter_class=RawTextHelpFormatter)
 
-parser.add_argument('-q', type=str, metavar='base_qseq', required=True, help='REQUIRED: Name of base qseq file for analysis')
-parser.add_argument('-d', type=int, metavar='min_depth', required=True, help='REQUIRED: Minimum (total) cluster depth needed to process cluster')
-parser.add_argument('-t', type=int, metavar='num_threads', required=True, help='REQUIRED: Number of threads to use in analysis\n')
+requiredParam = parser.add_argument_group('required parameters')
+requiredParam.add_argument('-q', type=str, metavar='base_qseq', required=True, help='Name of base qseq file for analysis')
+requiredParam.add_argument('-d', type=int, metavar='min_depth', required=True, help='Minimum (total) cluster depth needed to process cluster')
+requiredParam.add_argument('-t', type=int, metavar='num_threads', required=True, help='Number of threads to use in analysis\n')
 args = parser.parse_args()
 
 base_filename = args.q
